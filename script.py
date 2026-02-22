@@ -4,9 +4,8 @@ import time
 import re
 import os
 import subprocess
-import matplotlib.pyplot as plt
-import seaborn as sns
 from datetime import datetime
+from report import build_report
 
 ANSWER_PATTERN = re.compile(r'\b([ABCD])\b', re.IGNORECASE | re.UNICODE)
 
@@ -31,12 +30,15 @@ def stop_model(model_name):
 
 def run_benchmark(model_name, input_file, system_prompt):
     """Runs the benchmark for a specific model."""
-    # Load dataset with headers, limit to first 10 rows
-
-    df = pd.read_csv(input_file, header=0, nrows=10)
+    # Load dataset and sample up to 10 questions per category (Topic)
+    df_full = pd.read_csv(input_file, header=0)
+    # Remove empty rows (rows where ID or Question is NaN)
+    df_full = df_full.dropna(subset=['ID', 'Question'])
+    df = df_full.groupby('Topic').head(10).reset_index(drop=True)
     results = []
 
     print(f"\n>>> Starting benchmark for model: {model_name}")
+    print(f">>> Total questions to process: {len(df)} (up to 10 per category)")
 
     for index, row in df.iterrows():
         prompt = f"""
@@ -89,44 +91,10 @@ def run_benchmark(model_name, input_file, system_prompt):
 
     return results
 
-def build_report(results, dir_name):
-  """Aggregates results and generates visualizations."""
-  if not results:
-    print("No results to report.")
-    return
-
-  res_df = pd.DataFrame(results)
-  summary = res_df.groupby('model')['is_correct'].mean() * 100
-  print("\n--- Final Results (Accuracy %) ---")
-  print(summary)
-
-  # Save aggregated results
-  res_df.to_csv(f'{dir_name}/final_aggregation.csv', index=False)
-
-  # Build graph
-  plt.figure(figsize=(10, 6))
-  sns.set_theme(style="whitegrid")
-  plot = sns.barplot(x=summary.index, y=summary.values, hue=summary.index, palette='viridis', legend=False)
-
-  plt.title('LLM Accuracy Comparison in Ukrainian Cultural Context')
-  plt.ylabel('Accuracy (%)')
-  plt.xlabel('Model Name')
-  plt.ylim(0, 100)
-
-  # Add percentage labels on top of bars
-  for p in plot.patches:
-    plot.annotate(format(p.get_height(), '.1f'),
-                  (p.get_x() + p.get_width() / 2., p.get_height()),
-                  ha = 'center', va = 'center',
-                  xytext = (0, 9),
-                  textcoords = 'offset points')
-
-  plt.savefig(f'{dir_name}/benchmark_accuracy_chart.png', dpi=300)
-  print("\n--- Charts saved to results/ ---")
-
 def main():
   # Ensure these models are already pulled via 'ollama pull <name>' or created via 'ollama create <name> -f models/<name>.Modelfile'
-  models = ['gemma3:4b', 'lapa-v0.1.2-q4', 'mamay-9b-q4', 'mamay-4b-q4', 'deepseek-r1:8b']
+#   models = ['gemma3:4b', 'lapa-v0.1.2-q4', 'mamay-9b-q4', 'mamay-4b-q4', 'deepseek-r1:8b']
+  models = ['gemma3:4b', 'lapa-v0.1.2-q4', 'mamay-9b-q4', 'mamay-4b-q4']
   all_results = []
 
   # Create results directory if it doesn't exist
