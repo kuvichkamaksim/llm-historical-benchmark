@@ -55,7 +55,7 @@ def build_category_accuracy_chart(results, dir_name):
         return
 
     res_df = pd.DataFrame(results)
-    
+
     # Calculate accuracy per model and category
     category_summary = res_df.groupby(['model', 'category'])['is_correct'].mean() * 100
     category_summary = category_summary.reset_index()
@@ -67,7 +67,7 @@ def build_category_accuracy_chart(results, dir_name):
     # Create grouped bar chart
     plt.figure(figsize=(16, 10))
     sns.set_theme(style="whitegrid")
-    
+
     plot = sns.barplot(
         data=category_summary,
         x='Category',
