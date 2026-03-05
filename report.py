@@ -67,13 +67,15 @@ def build_category_accuracy_chart(results, dir_name):
     # Create grouped bar chart
     plt.figure(figsize=(16, 10))
     sns.set_theme(style="whitegrid")
-
+    
+    # Use a palette with more distinguishable colors for better visual clarity
+    # 'Set2' or 'tab10' provide distinct colors that are easy to differentiate
     plot = sns.barplot(
         data=category_summary,
         x='Category',
         y='Accuracy',
         hue='Model',
-        palette='viridis'
+        palette='tab10'
     )
 
     plt.title('LLM Accuracy by Question Category', pad=20)
@@ -87,6 +89,51 @@ def build_category_accuracy_chart(results, dir_name):
     plt.savefig(f'{dir_name}/category_accuracy_chart.png', dpi=300, bbox_inches='tight')
     plt.close()
     print(f"--- Category accuracy chart saved to {dir_name}/category_accuracy_chart.png ---")
+
+
+def visualize_answer_distribution(df, output_path='answer_distribution.png'):
+    """
+    Visualizes the distribution of correct answers (A, B, C, D) in the dataset.
+    
+    Args:
+        df: DataFrame with 'Correct Answer' column
+        output_path: Path where to save the chart
+    """
+    # Count occurrences of each answer
+    answer_counts = df['Correct Answer'].value_counts().sort_index()
+    
+    # Print statistics
+    print("\n--- Answer Distribution in Dataset ---")
+    print(answer_counts)
+    print(f"\nTotal questions: {answer_counts.sum()}")
+    print("\nPercentages:")
+    percentages = (answer_counts / answer_counts.sum() * 100).round(2)
+    for answer, pct in percentages.items():
+        print(f"  {answer}: {pct}%")
+    
+    # Create bar chart
+    plt.figure(figsize=(10, 6))
+    sns.set_theme(style="whitegrid")
+    
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']  # Blue, Orange, Green, Red
+    plot = plt.bar(answer_counts.index, answer_counts.values, color=colors[:len(answer_counts)])
+    
+    plt.title('Distribution of Correct Answers in Dataset', fontsize=16, pad=20)
+    plt.ylabel('Number of Questions', fontsize=12)
+    plt.xlabel('Correct Answer', fontsize=12)
+    plt.xticks(fontsize=11)
+    plt.yticks(fontsize=11)
+    
+    # Add value labels on top of bars
+    for i, (answer, count) in enumerate(answer_counts.items()):
+        percentage = percentages[answer]
+        plt.text(i, count, f'{count}\n({percentage}%)', 
+                ha='center', va='bottom', fontsize=10, fontweight='bold')
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"\n--- Answer distribution chart saved to {output_path} ---")
 
 
 def build_report(results, dir_name):

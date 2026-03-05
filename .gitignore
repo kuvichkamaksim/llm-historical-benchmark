@@ -214,6 +214,6 @@ __marimo__/
 # Model files
 models/*.gguf
 
-questions.csv
+questions*.csv
 
 results/
