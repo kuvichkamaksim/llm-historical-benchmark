@@ -1,6 +1,7 @@
 """
-Test 1: Overall Accuracy Test
-Tests models on the whole dataset and creates a single diagram for overall answer accuracy.
+Test 1: Overall Accuracy Test on Default Dataset
+Tests models on the 'default' part of the dataset (rows before the empty line separator)
+and creates a single diagram for overall answer accuracy.
 """
 import os
 import time
@@ -22,7 +23,7 @@ from benchmark.test1.report1 import build_report
 
 def run_test(models=None, questions_csv='questions.csv'):
     """
-    Runs Test 1: Overall accuracy benchmark.
+    Runs Test 1: Overall accuracy benchmark on the 'default' part of the dataset.
     
     Args:
         models: List of model names to test (uses DEFAULT_MODELS if None)
@@ -37,7 +38,8 @@ def run_test(models=None, questions_csv='questions.csv'):
     all_results = []
     
     # Load and validate input CSV once (shared across all models)
-    df_full = load_questions(questions_csv)
+    # Use only the 'default' part of the dataset (rows before the empty line separator)
+    df_full = load_questions(questions_csv, dataset_part='default')
     
     # Create results directory
     if not os.path.exists('results'):
@@ -46,7 +48,7 @@ def run_test(models=None, questions_csv='questions.csv'):
     test_dir = f'results/test1-{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
     os.makedirs(test_dir)
     
-    print(f"\n=== TEST 1: Overall Accuracy Test ===")
+    print(f"\n=== TEST 1: Overall Accuracy Test (Default Dataset) ===")
     print(f"Testing {len(models)} models on {len(df_full)} questions")
     print(f"Results will be saved to: {test_dir}\n")
     

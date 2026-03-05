@@ -13,9 +13,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python main.py --test1              Run Test 1 (overall accuracy)
+  python main.py --test1              Run Test 1 (overall accuracy on default dataset)
   python main.py --test2              Run Test 2 (topic-based accuracy)
-  python main.py --test3              Run Test 3 (subject-based accuracy on custom questions)
+  python main.py --test3              Run Test 3 (overall accuracy on custom dataset)
   python main.py --all                Run all tests
   python main.py --check-answers      Check answer distribution in dataset
         """
@@ -24,7 +24,7 @@ Examples:
     parser.add_argument(
         '--test1',
         action='store_true',
-        help='Run Test 1: Overall accuracy test on the whole dataset'
+        help='Run Test 1: Overall accuracy test on the default dataset (rows before empty line separator)'
     )
     
     parser.add_argument(
@@ -36,7 +36,7 @@ Examples:
     parser.add_argument(
         '--test3',
         action='store_true',
-        help='Run Test 3: Subject-based accuracy on custom questions set (records without Time period, grouped by Subject)'
+        help='Run Test 3: Overall accuracy test on the custom dataset (rows after empty line separator)'
     )
     
     parser.add_argument(
@@ -79,7 +79,7 @@ Examples:
     
     if args.test1:
         print("\n" + "="*60)
-        print("RUNNING TEST 1: Overall Accuracy Test")
+        print("RUNNING TEST 1: Overall Accuracy Test (Default Dataset)")
         print("="*60)
         from benchmark import run_test1
         run_test1(questions_csv=args.questions_csv)
@@ -93,7 +93,7 @@ Examples:
     
     if args.test3:
         print("\n" + "="*60)
-        print("RUNNING TEST 3: Category-based Accuracy on Custom Questions Set")
+        print("RUNNING TEST 3: Overall Accuracy Test (Custom Dataset)")
         print("="*60)
         from benchmark import run_test3
         run_test3(questions_csv=args.questions_csv)

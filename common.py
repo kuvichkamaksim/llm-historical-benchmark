@@ -55,13 +55,42 @@ def validate_input_csv(df):
     print(f"✓ Input CSV validation passed. Found all {len(INPUT_CSV_REQUIRED_COLUMNS)} required columns.")
 
 
-def load_questions(csv_path='questions.csv'):
-    """Loads and validates the questions CSV file."""
-    print("Loading questions from CSV...")
+def load_questions(csv_path='questions.csv', dataset_part='all'):
+    """
+    Loads and validates the questions CSV file.
+    
+    Args:
+        csv_path: Path to the questions CSV file
+        dataset_part: Which part of the dataset to load:
+            - 'all': Load entire dataset
+            - 'default': Load rows before the empty line separator
+            - 'custom': Load rows after the empty line separator
+    
+    Returns:
+        DataFrame with questions
+    """
+    print(f"Loading questions from CSV (part: {dataset_part})...")
     df = pd.read_csv(csv_path, header=0)
     validate_input_csv(df)
     
-    # Remove empty rows (rows where ID or Question is NaN)
+    if dataset_part in ('default', 'custom'):
+        # Find the empty row that splits the dataset
+        # An empty row has NaN in critical columns like Question and Correct Answer
+        empty_row_mask = df['Question'].isna() & df['Correct Answer'].isna()
+        empty_row_indices = df[empty_row_mask].index.tolist()
+        
+        if empty_row_indices:
+            split_index = empty_row_indices[0]
+            if dataset_part == 'default':
+                df = df.iloc[:split_index]
+                print(f"Using 'default' part: rows before empty line (index {split_index})")
+            else:  # 'custom'
+                df = df.iloc[split_index + 1:]
+                print(f"Using 'custom' part: rows after empty line (index {split_index})")
+        else:
+            print("Warning: No empty line separator found. Using entire dataset.")
+    
+    # Remove empty rows (rows where Question or Correct Answer is NaN)
     df = df.dropna(subset=['Question', 'Correct Answer'])
     print(f"Loaded {len(df)} valid questions from CSV.\n")
     return df
@@ -84,7 +113,7 @@ def stop_model(model_name):
         print(f"--- Failed to stop model {model_name}: {e} ---")
 
 
-def run_model_on_questions(model_name, df_questions, system_prompt, category_col='Time period'):
+def run_model_on_questions(model_name, df_questions, system_prompt):
     """
     Runs a model on a set of questions and collects results.
 
@@ -137,7 +166,7 @@ def run_model_on_questions(model_name, df_questions, system_prompt, category_col
             results.append({
                 'id': question_id,
                 'model': model_name,
-                'category': row[category_col],
+                'category': row['Time period'],
                 'raw_response': raw_response.strip() or 'N/A',
                 'thinking': thinking or 'N/A',
                 'predicted': answer or 'N/A',
